@@ -2,30 +2,837 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>KASI 테니스 코트</title>
-
 <meta property="og:url" content="https://jhshin04.github.io/KASI_tennis_court/">
 <meta property="og:image" content="https://jhshin04.github.io/KASI_tennis_court/og.png">
-
 <meta property="og:type" content="website">
 <meta property="og:title" content="KASI 테니스 코트">
 <meta property="og:description" content="지금 코트가 비었는지, 누가 언제 예약했는지 확인하고 예약해요. Check and book the court.">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-
-<meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbwzszTKxm954Fas4Aby9LQAhJBTJAS-C7ohnNvi3ELgoIlNRdbIp1lftaZJWi5NZJG2pw/exec">
-<script>location.replace("https://script.google.com/macros/s/AKfycbzovT-i2dvbgoptCqOh42aHG4WoO6CFUdAPGUanL-5KBJADLEKUYDF8zZXr4l7ZV3zH-Q/exec");</script>
-
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%BE%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
-       background:#2E6A53;color:#fff;font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;text-align:center}
-  a{color:#D6EA38}
+:root{
+  --bg:#EDF1EA; --surface:#FFFFFF; --ink:#16241D; --muted:#5A6A61; --line:#D2DBD3;
+  --court:#2E6A53; --court-deep:#245644; --court-ink:#FFFFFF;
+  --ball:#D6EA38; --ball-ink:#1A2910;
+  --open-bg:#F3F9CF; --open-border:#A3BA1B;
+  --warn:#B0432B; --past:rgba(22,36,29,.05);
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111915; --surface:#19231E; --ink:#E5EDE7; --muted:#97A79E; --line:#2B3932;
+    --court:#2F7259; --court-deep:#255D48; --court-ink:#FFFFFF;
+    --ball:#D6EA38; --ball-ink:#1A2910;
+    --open-bg:#262F14; --open-border:#B4CC2A;
+    --warn:#E3806A; --past:rgba(255,255,255,.04);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111915; --surface:#19231E; --ink:#E5EDE7; --muted:#97A79E; --line:#2B3932;
+  --court:#2F7259; --court-deep:#255D48; --court-ink:#FFFFFF;
+  --ball:#D6EA38; --ball-ink:#1A2910;
+  --open-bg:#262F14; --open-border:#B4CC2A;
+  --warn:#E3806A; --past:rgba(255,255,255,.04);
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font-family:"IBM Plex Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  -webkit-text-size-adjust:100%;text-size-adjust:100%;
+}
+:root{--lesson:#5866B0;--lesson-ink:#FFFFFF}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--lesson:#8E9AE0;--lesson-ink:#10142A}}
+:root[data-theme="dark"]{--lesson:#8E9AE0;--lesson-ink:#10142A}
+.num{font-family:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:620px;margin:0 auto;padding:20px 16px 56px}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:14px}
+.top h1{font-size:1.05rem;font-weight:600;margin:0;color:var(--muted)}
+.clock{font-size:1.25rem;font-weight:600;color:var(--muted)}
+.top-r{display:flex;align-items:center;gap:10px;flex:none}
+.lang{font:inherit;font-size:.85rem;font-weight:600;padding:5px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+
+/* Hero: the court itself */
+.court{
+  position:relative;display:block;width:100%;text-align:left;border:0;cursor:default;
+  background:var(--court);color:var(--court-ink);border-radius:4px;
+  padding:30px 30px 28px;overflow:hidden;font:inherit;min-height:150px;
+}
+.court.clickable{cursor:pointer}
+.court::before{content:"";position:absolute;inset:12px;border:2px solid rgba(255,255,255,.5);pointer-events:none}
+.court::after{content:"";position:absolute;top:12px;bottom:12px;right:30%;border-left:2px dashed rgba(255,255,255,.45);pointer-events:none}
+.court .state{position:relative;font-size:1.75rem;font-weight:700;line-height:1.25;margin:0 0 8px;max-width:70%}
+.court .sub{position:relative;font-size:.98rem;opacity:.92;margin:0;max-width:68%}
+.court .ball{
+  position:absolute;right:calc(30% - 15px);top:50%;width:28px;height:28px;margin-top:-14px;border-radius:50%;
+  background:var(--ball);box-shadow:inset -4px -3px 0 rgba(0,0,0,.12);
+}
+.court .ball::before{content:"";position:absolute;inset:3px 8px;border-left:2px solid rgba(255,255,255,.8);border-right:2px solid rgba(255,255,255,.8);border-radius:50%}
+.court.busy .ball{right:12%}
+.court.blocked{background:var(--court-deep)}
+.court.blocked .ball{display:none}
+.court .big-time{position:absolute;right:26px;bottom:18px;font-size:2.6rem;font-weight:700;line-height:1;opacity:.9}
+
+/* Day picker */
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:18px 0 10px}
+.day{
+  font:inherit;border:1px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:4px;padding:8px 0 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0;
+}
+.day .d{font-size:1.45rem;font-weight:600;line-height:1}
+.day .w{font-size:.78rem;color:var(--muted)}
+.day .mini{position:relative;display:block;width:82%;height:8px;margin-top:6px;border-radius:2px;background:var(--line);overflow:hidden}
+.day .mini::before,.day .mini::after{content:"";position:absolute;top:0;bottom:0;width:1px;background:var(--muted);opacity:.35;z-index:1}
+.day .mini::before{left:37.5%}
+.day .mini::after{left:75%}
+.day .mini i{position:absolute;top:0;bottom:0;min-width:3px;box-shadow:inset -1px 0 0 rgba(255,255,255,.6)}
+.day .mini .seg-open{background:var(--open-border)}
+.day .mini .seg-closed{background:var(--court)}
+.day .mini .seg-lesson{background:var(--lesson)}
+.day .mini .seg-blocked{background:var(--muted)}
+.day[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.day[aria-pressed="true"] .w{color:inherit;opacity:.8}
+.day[aria-pressed="true"] .mini{background:rgba(128,128,128,.45)}
+
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:14px 0 10px;flex-wrap:wrap}
+.legend{display:flex;gap:12px;font-size:.82rem;color:var(--muted);flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:12px;height:12px;border-radius:2px;display:inline-block}
+.sw.open{background:var(--open-bg);border:2px solid var(--open-border)}
+.sw.closed{background:var(--court)}
+.sw.lesson{background:var(--lesson)}
+.sw.blocked{background:repeating-linear-gradient(135deg,var(--surface) 0 3px,var(--muted) 3px 4px);border:1px solid var(--line)}
+
+.btn{
+  font:inherit;font-weight:600;border-radius:4px;padding:10px 16px;cursor:pointer;border:1px solid transparent;
+  background:var(--ball);color:var(--ball-ink);
+}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.danger{background:transparent;color:var(--warn);border-color:var(--warn)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ball);outline-offset:2px}
+
+/* Timeline */
+.tl{position:relative;display:grid;grid-template-columns:48px 1fr;background:var(--surface);border:1px solid var(--line);border-radius:4px}
+.hours{position:relative;border-right:1px solid var(--line)}
+.hours .hl{position:absolute;left:0;right:8px;text-align:right;font-size:1rem;font-weight:500;color:var(--muted);transform:translateY(-.6em)}
+.area{position:relative;cursor:copy}
+.area.ro{cursor:default}
+.area .gl{position:absolute;left:0;right:0;border-top:1px solid var(--line);pointer-events:none}
+.area .gl.half{border-top-style:dotted;opacity:.6}
+.area .past{position:absolute;left:0;right:0;top:0;background:var(--past);pointer-events:none}
+.area .now{position:absolute;left:-6px;right:0;border-top:2px solid var(--warn);pointer-events:none;z-index:3}
+.area .now::before{content:"";position:absolute;left:0;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--warn)}
+.bk{
+  position:absolute;left:8px;right:8px;border-radius:4px;padding:4px 9px;line-height:1.25;overflow:hidden;cursor:pointer;
+  font:inherit;text-align:left;display:flex;flex-direction:column;gap:1px;z-index:2;border:0;
+}
+.bk.closed{background:var(--court);color:var(--court-ink)}
+.bk.open{background:var(--open-bg);border:2px solid var(--open-border);color:var(--ink)}
+.bk.lesson{background:var(--lesson);color:var(--lesson-ink)}
+.bk.blocked{background:repeating-linear-gradient(135deg,var(--surface) 0 8px,var(--line) 8px 16px);color:var(--ink);border:1px solid var(--line)}
+.bk .tag{margin-top:2px}
+.bk .r1{display:flex;justify-content:space-between;gap:6px;align-items:baseline;min-width:0}
+.bk .who{font-weight:600;font-size:.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.bk .t{font-size:.92rem;font-weight:600;white-space:nowrap;opacity:.85;flex:none}
+.bk .tag{font-size:.76rem;font-weight:600;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk .note{font-size:.74rem;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk.short{justify-content:center;padding-top:1px;padding-bottom:1px}
+.bk.short .who{font-size:.8rem}
+.bk.short .t{font-size:.84rem}
+.pwbox{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:4px;background:var(--bg)}
+.pwbox p{margin:0 0 8px;font-size:.9rem;font-weight:600}
+.pwbox .row{align-items:center}
+.pwbox .row>button{flex:none}
+.mini-btn{font:inherit;font-size:.8rem;background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;padding:0 2px}
+input[type=password]{width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink)}
+
+.notice{margin:12px 0;padding:10px 12px;border-left:3px solid var(--muted);background:var(--surface);font-size:.9rem;color:var(--muted)}
+.hint{font-size:.85rem;color:var(--muted);margin:8px 2px 0}
+
+/* Sheet */
+dialog{
+  border:0;padding:0;background:var(--surface);color:var(--ink);border-radius:8px;
+  width:min(520px,calc(100vw - 24px));max-height:calc(100vh - 40px);
+}
+dialog::backdrop{background:rgba(10,20,15,.45)}
+@media (max-width:560px){
+  dialog{margin:auto auto 0;width:100vw;max-width:100vw;border-radius:12px 12px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+}
+.sheet{padding:20px 20px 22px}
+.sheet h2{margin:0 0 4px;font-size:1.25rem}
+.sheet .when{font-size:1.35rem;font-weight:600;color:var(--muted);margin:0 0 14px}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+label.f{display:block;font-size:.86rem;font-weight:600;color:var(--muted);margin:12px 0 5px}
+input[type=text],select{
+  width:100%;font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--ink);
+}
+.seg{display:flex;flex-direction:column;gap:6px}
+.seg label{display:flex;gap:10px;align-items:flex-start;padding:9px 11px;border:1px solid var(--line);border-radius:4px;cursor:pointer}
+.seg label:has(input:checked){border-color:var(--court);background:var(--bg)}
+.seg input{margin-top:5px;accent-color:var(--court)}
+.seg b{display:block;font-weight:600}
+.seg small{color:var(--muted)}
+.err{color:var(--warn);font-size:.9rem;margin:12px 0 0;min-height:1.2em}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.people{list-style:none;padding:0;margin:6px 0 0;display:flex;flex-direction:column;gap:4px}
+.people li{padding:6px 10px;background:var(--bg);border-radius:4px;display:flex;justify-content:space-between;gap:8px}
+.people li small{color:var(--muted)}
+.kv{font-size:.95rem;margin:4px 0}
+.kv span{color:var(--muted);margin-right:6px}
 </style>
 </head>
 <body>
-  <p>KASI 테니스 코트로 이동하는 중이에요.<br>
-  넘어가지 않으면 <a href="https://script.google.com/macros/s/AKfycbwzszTKxm954Fas4Aby9LQAhJBTJAS-C7ohnNvi3ELgoIlNRdbIp1lftaZJWi5NZJG2pw/exec">여기를 눌러 주세요</a>.</p>
+<main id="app"></main>
+<dialog id="sheet"></dialog>
+<script>
+(function(){
+"use strict";
+var START_H = 6, END_H = 22, HPX = 72;
+
+/* ---------- 언어 ---------- */
+var TXT = {
+  title:["KASI 테니스 코트","KASI Tennis Court"],
+  admin:[" (관리자)"," (admin)"],
+  langBtn:["English","한국어"],
+  langAria:["Switch to English","한국어로 보기"],
+  barHint:["날짜 아래 막대는 {0}시~{1}시 하루예요. 옅은 눈금은 12시와 18시예요.","The bar under each date shows {0}:00–{1}:00. Faint ticks mark 12:00 and 18:00."],
+  loadFail:["예약 정보를 불러오지 못했어요. {0}","Couldn't load bookings. {0}"],
+  footHint:["빈 시간을 누르면 그 시간으로 바로 예약할 수 있어요. 예약을 취소하거나 바꿀 때는 예약할 때 정한 비밀번호가 필요해요.","Tap an empty slot to book that time. To cancel or change a booking, you'll need the password you set when booking."],
+  checking:["코트 상황을 확인하는 중","Checking the court"],
+  wait:["잠시만요.","One moment."],
+  free:["지금 비어 있어요","The court is free now"],
+  nextB:["다음 예약은 {0}, {1} 님이에요.","Next booking: {0}, {1}."],
+  noMore:["오늘은 남은 예약이 없어요.","No more bookings today."],
+  offHours:["예약 시간({0}~{1})이 아니에요.","Outside booking hours ({0}–{1})."],
+  someone:["누군가","someone"],
+  blockedNow:["지금은 코트를 쓸 수 없어요","The court is closed right now"],
+  blockedDefault:["코트 사용 불가","Court unavailable"],
+  until:["{0}, {1}까지","{0}, until {1}"],
+  openNow:["사용 중, 같이 쳐도 돼요","In use, come join!"],
+  openFullExtra:["사용 중, 인원이 찼지만 함께 해요.","In use and full, but you can still join."],
+  openFull:["사용 중, 인원이 찼어요. 다음에 함께 해요.","In use and full. Join next time!"],
+  openSub:["{0} 님 예약, {1}까지. 지금 {2}/{3}명","Booked by {0} until {1}. {2}/{3} players now."],
+  lessonNow:["지금 레슨 중이에요","A lesson is on now"],
+  lessonSub:["{0} 님 레슨, {1}까지.","Lesson by {0} until {1}."],
+  closedNow:["지금 사용 중이에요","In use right now"],
+  closedSub:["{0} 님 예약, {1}까지. 멤버가 정해져 있어요.","Booked by {0} until {1}. Fixed group."],
+  more:[". 자세히 보기",". See details"],
+  today:["오늘","Today"],
+  dayAria:["{0} {1}일, 예약 {2}건","{0} {1}, {2} bookings"],
+  dayPick:["날짜 선택","Choose a date"],
+  legOpen:["오픈 (같이 쳐요)","Open (join in)"],
+  legClosed:["클로즈 (멤버 확정)","Closed (fixed group)"],
+  legLesson:["레슨","Lesson"],
+  legBlocked:["사용 불가","Unavailable"],
+  book:["예약하기","Book"],
+  tagOpen:["같이 쳐요 {0}/{1}","Join {0}/{1}"],
+  tagFullExtra:["{0}/{1}, 더 와도 돼요","{0}/{1}, more welcome"],
+  tagFull:["{0}/{1} 마감","{0}/{1} full"],
+  tagLesson:["레슨","Lesson"],
+  tagClosed:["멤버 확정","Fixed group"],
+  noName:["이름 없음","No name"],
+  formTitle:["코트 예약","Book the court"],
+  name:["이름","Name"],
+  namePh:["예: 김지혜","e.g. Jihye Kim"],
+  pw:["비밀번호 (취소하거나 바꿀 때 필요해요)","Password (needed to cancel or change)"],
+  pwPh:["4자 이상, 예: 숫자 4자리","4+ characters, e.g. 4 digits"],
+  date:["날짜","Date"],
+  todayPrefix:["오늘, ","Today, "],
+  start:["시작","Start"],
+  end:["끝","End"],
+  mode:["참여 방식","Booking type"],
+  mOpen:["오픈","Open"],
+  mOpenD:["같이 칠 사람 환영. 다른 사람이 참여 신청할 수 있어요.","Others are welcome and can sign up to join."],
+  mClosed:["클로즈","Closed"],
+  mClosedD:["멤버가 정해져 있어요.","Your group is already set."],
+  mLesson:["레슨","Lesson"],
+  mLessonD:["레슨 시간이에요. 참여 신청은 받지 않아요.","A lesson slot. No sign-ups."],
+  mBlocked:["코트 사용 불가","Court unavailable"],
+  mBlockedD:["정비나 우천 등으로 이 시간에는 쓸 수 없어요.","The court can't be used (maintenance, rain, etc.)."],
+  cap:["총 인원","Total players"],
+  capOpt:["{0}명 (나 포함)","{0} (including me)"],
+  whenFull:["인원이 다 차면","When it's full"],
+  fullClose:["마감할게요","Close sign-ups"],
+  fullCloseD:["\u201c인원이 찼어요. 다음에 함께 해요.\u201d로 보여요.","Shows \u201cfull, join next time.\u201d"],
+  fullOpen:["더 와도 함께 쳐요","More are welcome"],
+  fullOpenD:["\u201c인원이 찼지만 함께 해요.\u201d로 보이고, 계속 참여할 수 있어요.","Shows \u201cfull, but you can still join\u201d and keeps sign-ups open."],
+  note:["메모 (선택)","Note (optional)"],
+  reason:["사유","Reason"],
+  phBlocked:["예: 코트 보수 공사","e.g. court repairs"],
+  phLesson:["예: 코치 이름, 초급반","e.g. coach name, beginners"],
+  phOpen:["예: 복식 환영 (시간표엔 10자 정도 보여요)","e.g. doubles welcome (about 20 letters show)"],
+  close:["닫기","Close"],
+  saving:["저장하는 중","Saving"],
+  needName:["이름을 적어 주세요.","Please enter your name."],
+  needPw:["비밀번호를 4자 이상 정해 주세요.","Please set a password of at least 4 characters."],
+  endAfter:["끝 시간이 시작보다 늦어야 해요.","End time must be after the start."],
+  past:["이미 지난 시간이에요.","That time has already passed."],
+  clash:["{0}–{1} 예약과 겹쳐요.","Overlaps with the {0}–{1} booking."],
+  tBlocked:["코트 사용 불가","Court unavailable"],
+  tOpen:["오픈 예약","Open booking"],
+  tLesson:["레슨","Lesson"],
+  tClosed:["클로즈 예약","Closed booking"],
+  noReason:["사유가 적혀 있지 않아요.","No reason given."],
+  memo:["메모","Note"],
+  players:["참여자 {0}/{1}명","Players {0}/{1}"],
+  host:["예약자","Booked by"],
+  hostTag:["예약자","host"],
+  joinedTag:["참여 ","joined "],
+  cancelLink:["취소","Cancel"],
+  leaveLabel:["{0} 님 참여 취소","Remove {0}"],
+  extraNote:["인원이 차도 함께 칠 수 있어요.","People can still join when it's full."],
+  lessonNote:["레슨 시간이에요. 레슨에 관심이 있다면 예약자에게 물어봐 주세요.","This is a lesson. If you're interested, ask the person who booked it."],
+  closedNote:["멤버가 정해진 예약이에요. 같이 치고 싶다면 예약자에게 직접 물어봐 주세요.","The group is set. If you'd like to play, ask the person who booked it."],
+  pwPrompt:["{0}: 비밀번호를 넣어 주세요.","{0}: enter the password."],
+  pwAria:["비밀번호","Password"],
+  ok:["확인","OK"],
+  stop:["그만두기","Never mind"],
+  enterPw:["비밀번호를 넣어 주세요.","Please enter the password."],
+  myName:["내 이름","My name"],
+  joinPw:["비밀번호 (참여 취소용)","Password (to cancel joining)"],
+  joinPh:["4자 이상","4+ characters"],
+  joinBtn:["저도 낄게요","Count me in"],
+  fullMsg:["인원이 다 찼어요. 다음에 함께 해요.","It's full. Join next time!"],
+  toOpen:["오픈으로 바꾸기","Make it open"],
+  toClosed:["클로즈로 바꾸기","Make it closed"],
+  unblock:["막은 시간 풀기","Unblock"],
+  cancelB:["예약 취소","Cancel booking"],
+  preview:["웹앱 주소(API_URL)가 아직 설정되지 않았어요. index.html의 \u201c바꿀 곳\u201d을 채워 주세요.","The web app address (API_URL) is not set yet. Fill in the marked line in index.html."],
+  previewSave:["웹앱 주소가 설정되지 않아 저장할 수 없어요.","Can't save: the web app address is not set."],
+  saveFail:["저장하지 못했어요. 잠시 후 다시 눌러 주세요.","Couldn't save. Please try again in a moment."]
+};
+var WDS = [["일","월","화","수","목","금","토"],["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]];
+var MON = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+/* 서버가 보내는 한국어 메시지 → 영어 */
+var SERVER_EN = {
+  "오늘부터 7일 안의 날짜만 예약할 수 있어요.":"You can only book within the next 7 days.",
+  "시간을 다시 골라 주세요.":"Please choose the time again.",
+  "예약 방식을 골라 주세요.":"Please choose a booking type.",
+  "코트 사용 불가는 관리자만 설정할 수 있어요.":"Only the admin can block the court.",
+  "이름을 적어 주세요.":"Please enter your name.",
+  "비밀번호는 4~20자로 정해 주세요.":"Password must be 4–20 characters.",
+  "총 인원을 골라 주세요.":"Please choose the number of players.",
+  "이미 지난 시간이에요.":"That time has already passed.",
+  "예약을 찾을 수 없어요.":"Booking not found.",
+  "바꿀 수 없는 방식이에요.":"That type can't be changed.",
+  "예약이 취소됐어요.":"This booking was cancelled.",
+  "오픈 예약이 아니에요.":"This is not an open booking.",
+  "이미 지난 예약이에요.":"This booking is already over.",
+  "인원이 다 찼어요. 다음에 함께 해요.":"It's full. Join next time!",
+  "다른 사람이 예약하는 중이에요. 잠시 후 다시 눌러 주세요.":"Someone else is booking right now. Please try again in a moment.",
+  "비밀번호를 여러 번 틀렸어요. 10분 뒤에 다시 해 주세요.":"Too many wrong passwords. Try again in 10 minutes.",
+  "비밀번호가 맞지 않아요.":"Wrong password."
+};
+
+var S = {
+  lang:"ko",
+  adminKey:"", isAdmin:false, msg:"",
+  loaded:false, err:null, busy:false,
+  bookings:[], joins:[], sel:todayStr(),
+  sheetMode:null, detailId:null
+};
+try{
+  var savedLang=localStorage.getItem("tennis.lang");
+  S.lang = savedLang || ((navigator.language||"ko").toLowerCase().indexOf("ko")===0 ? "ko" : "en");
+}catch(e){}
+
+function L(key){
+  var row=TXT[key]; var s=row ? row[S.lang==="en"?1:0] : key;
+  for(var i=1;i<arguments.length;i++) s=s.split("{"+(i-1)+"}").join(String(arguments[i]));
+  return s;
+}
+function tr(msg){
+  if(!msg || S.lang!=="en") return msg||"";
+  if(SERVER_EN[msg]) return SERVER_EN[msg];
+  var m=/^(\d\d:\d\d)–(\d\d:\d\d) 예약과 겹쳐요\.$/.exec(msg);
+  if(m) return L("clash",m[1],m[2]);
+  for(var k in TXT){ if(TXT[k][0]===msg) return TXT[k][1]; }
+  return msg;
+}
+function setLang(l){
+  S.lang=l;
+  try{ localStorage.setItem("tennis.lang",l); }catch(e){}
+  document.documentElement.lang=l;
+  render();
+}
+
+var app = document.getElementById("app");
+var sheet = document.getElementById("sheet");
+
+function pad(n){ return String(n).padStart(2,"0"); }
+function dstr(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function todayStr(){ return dstr(new Date()); }
+function fmt(m){ return pad(Math.floor(m/60))+":"+pad(m%60); }
+function nowMin(){ var d=new Date(); return d.getHours()*60+d.getMinutes(); }
+function parseD(s){ var p=s.split("-"); return new Date(+p[0],+p[1]-1,+p[2]); }
+function wd(d){ return WDS[S.lang==="en"?1:0][d.getDay()]; }
+function dayLabel(s){
+  var d=parseD(s);
+  return S.lang==="en" ? wd(d)+", "+MON[d.getMonth()]+" "+d.getDate()
+                       : (d.getMonth()+1)+"월 "+d.getDate()+"일 ("+wd(d)+")";
+}
+function days(){ var out=[],b=new Date(); b.setHours(0,0,0,0); for(var i=0;i<7;i++){ var d=new Date(b); d.setDate(b.getDate()+i); out.push(d);} return out; }
+
+function h(tag, attrs){
+  var e=document.createElement(tag);
+  if(attrs) for(var k in attrs){
+    var v=attrs[k]; if(v==null||v===false) continue;
+    if(k==="class") e.className=v;
+    else if(k==="text") e.textContent=v;
+    else if(k==="style") e.style.cssText=v;
+    else if(k.slice(0,2)==="on") e.addEventListener(k.slice(2),v);
+    else e.setAttribute(k, v===true?"":v);
+  }
+  for(var i=2;i<arguments.length;i++) add(e, arguments[i]);
+  return e;
+}
+function add(e,c){
+  if(c==null||c===false) return;
+  if(Array.isArray(c)){ c.forEach(function(x){ add(e,x); }); return; }
+  e.append(c.nodeType ? c : document.createTextNode(String(c)));
+}
+
+function getName(){ try{ return localStorage.getItem("tennis.name") || ""; }catch(e){ return ""; } }
+function setName(n){ try{ localStorage.setItem("tennis.name", n); }catch(e){} }
+
+/* ---------- 서버 호출 ---------- */
+/* ▼ 바꿀 곳: Apps Script 웹앱 주소(…/exec)를 따옴표 안에 넣어 주세요 */
+var API_URL = "https://script.google.com/macros/s/AKfycbz5Ytbt3g6a921o3VAAU2450uQ1s0feEbIvd_QG60b4xADVT2Y2Aer2M6xYwPA2AGzd/exec";
+
+function apiReady(){ return /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(API_URL); }
+function api(fn){
+  var args=Array.prototype.slice.call(arguments,1);
+  if(!apiReady()) return Promise.reject(new Error(TXT.previewSave[0]));
+  return fetch(API_URL,{
+    method:"POST",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify({fn:fn,args:args}),
+    redirect:"follow"
+  }).then(function(r){
+    if(!r.ok) throw new Error(TXT.saveFail[0]);
+    return r.json();
+  }).then(function(o){
+    if(!o || !o.ok) throw new Error((o && o.error) || TXT.saveFail[0]);
+    return o.data;
+  });
+}
+function errMsg(e){
+  var m=(e && e.message) ? e.message : String(e||"");
+  m=m.replace(/^Error:\s*/,"").replace(/^Exception:\s*/,"");
+  return m || TXT.saveFail[0];
+}
+function apply(data){
+  S.bookings=data.bookings||[]; S.joins=data.joins||[]; S.isAdmin=!!data.admin;
+  S.loaded=true; S.err=null; render();
+}
+function load(){
+  if(S.busy) return;
+  api("getData",S.adminKey).then(apply).catch(function(e){ S.err=errMsg(e); S.loaded=true; render(); });
+}
+async function act(fn, args, errEl, btn){
+  if(btn) btn.disabled=true;
+  S.busy=true;
+  try{
+    var data=await api.apply(null,[fn].concat(args));
+    S.busy=false; S.msg=""; apply(data); return true;
+  }catch(e){
+    S.busy=false;
+    S.msg=errMsg(e);
+    if(errEl) errEl.textContent=tr(S.msg);
+    if(btn) btn.disabled=false;
+    load();
+    return false;
+  }
+}
+
+function joinsOf(id){ return S.joins.filter(function(j){ return j.bookingId===id; }).sort(function(a,b){ return (a.at||0)-(b.at||0); }); }
+function bookingsOn(date){ return S.bookings.filter(function(b){ return b.date===date; }).sort(function(a,b){ return a.start-b.start; }); }
+
+/* ---------- 화면 ---------- */
+function render(){
+  document.title=L("title");
+  app.replaceChildren();
+  add(app,[
+    h("div",{class:"top"},
+      h("h1",{text:L("title")+(S.isAdmin?L("admin"):"")}),
+      h("div",{class:"top-r"},
+        h("span",{class:"clock num",text:fmt(nowMin())}),
+        h("button",{class:"lang",type:"button","aria-label":L("langAria"),text:L("langBtn"),
+          onclick:function(){ setLang(S.lang==="en"?"ko":"en"); }}))
+    ),
+    renderHero(),
+    renderDays(),
+    h("p",{class:"hint",style:"margin-top:0",text:L("barHint",pad(START_H),END_H)}),
+    renderBar(),
+    S.err ? h("div",{class:"notice",text:L("loadFail",tr(S.err))}) : null,
+    renderTimeline(),
+    S.loaded ? h("p",{class:"hint",text:L("footHint")}) : null
+  ]);
+  var ae=document.activeElement;
+  var typing = ae && ae.tagName==="INPUT" && sheet.contains(ae);
+  if(sheet.open && S.sheetMode==="detail" && !typing) renderDetail();
+}
+
+function renderHero(){
+  if(!S.loaded){
+    return h("div",{class:"court"}, h("p",{class:"state",text:L("checking")}), h("p",{class:"sub",text:L("wait")}));
+  }
+  var t=todayStr(), n=nowMin(), list=bookingsOn(t);
+  var cur=list.find(function(b){ return b.start<=n && n<b.end; });
+  var next=list.find(function(b){ return b.start>n; });
+  if(!cur){
+    var sub = next ? L("nextB",fmt(next.start),next.name||L("someone")) : L("noMore");
+    if(!next && (n>=END_H*60 || n<START_H*60)) sub=L("offHours",pad(START_H)+":00",END_H+":00");
+    return h("div",{class:"court"},
+      h("p",{class:"state",text:L("free")}),
+      h("p",{class:"sub",text:sub}),
+      h("span",{class:"ball","aria-hidden":"true"}));
+  }
+  var who=cur.name||L("someone");
+  var cls="court clickable "+(cur.mode==="blocked"?"blocked":"busy"), state, sub2;
+  if(cur.mode==="blocked"){ state=L("blockedNow"); sub2=L("until",cur.note||L("blockedDefault"),fmt(cur.end)); }
+  else if(cur.mode==="open"){
+    var cnt=1+joinsOf(cur.id).length, cap=cur.capacity||4;
+    state = cnt<cap ? L("openNow") : (cur.extra ? L("openFullExtra") : L("openFull"));
+    sub2=L("openSub",who,fmt(cur.end),cnt,cap);
+  } else if(cur.mode==="lesson"){ state=L("lessonNow"); sub2=L("lessonSub",who,fmt(cur.end)); }
+  else { state=L("closedNow"); sub2=L("closedSub",who,fmt(cur.end)); }
+  return h("button",{class:cls,type:"button",onclick:function(){ openDetail(cur.id); },"aria-label":state+L("more")},
+    h("p",{class:"state",text:state}),
+    h("p",{class:"sub",text:sub2}),
+    h("span",{class:"ball","aria-hidden":"true"}));
+}
+
+function renderDays(){
+  var wrap=h("div",{class:"days",role:"group","aria-label":L("dayPick")});
+  days().forEach(function(d,i){
+    var s=dstr(d), list=bookingsOn(s), span=(END_H-START_H)*60;
+    var mini=h("span",{class:"mini","aria-hidden":"true"});
+    list.forEach(function(b){
+      var a=Math.max(b.start,START_H*60), z=Math.min(b.end,END_H*60);
+      if(z<=a) return;
+      mini.append(h("i",{class:"seg-"+b.mode,style:"left:"+((a-START_H*60)/span*100)+"%;width:"+((z-a)/span*100)+"%"}));
+    });
+    var lbl=L("dayAria",i===0?L("today"):wd(d),d.getDate(),list.length);
+    wrap.append(h("button",{class:"day",type:"button","aria-label":lbl,"aria-pressed":String(s===S.sel),onclick:function(){ S.sel=s; render(); }},
+      h("span",{class:"w",text:i===0?L("today"):wd(d)}),
+      h("span",{class:"d num",text:String(d.getDate())}),
+      mini
+    ));
+  });
+  return wrap;
+}
+
+function renderBar(){
+  return h("div",{class:"bar"},
+    h("div",{class:"legend"},
+      h("span",null,h("i",{class:"sw open"}),L("legOpen")),
+      h("span",null,h("i",{class:"sw closed"}),L("legClosed")),
+      h("span",null,h("i",{class:"sw lesson"}),L("legLesson")),
+      h("span",null,h("i",{class:"sw blocked"}),L("legBlocked"))),
+    S.loaded ? h("button",{class:"btn",type:"button",onclick:function(){ openForm(S.sel,null); },text:L("book")}) : null
+  );
+}
+
+function tagOf(b){
+  if(b.mode==="blocked") return L("legBlocked");
+  if(b.mode==="open"){
+    var c=1+joinsOf(b.id).length, k=b.capacity||4;
+    var t = c<k ? L("tagOpen",c,k) : (b.extra ? L("tagFullExtra",c,k) : L("tagFull",c,k));
+    return b.note ? t+" ("+b.note+")" : t;
+  }
+  if(b.mode==="lesson") return L("tagLesson")+(b.note?", "+b.note:"");
+  return L("tagClosed")+(b.note?" ("+b.note+")":"");
+}
+
+function renderTimeline(){
+  var total=(END_H-START_H)*HPX, base=START_H*60;
+  var hours=h("div",{class:"hours",style:"height:"+total+"px"});
+  var area=h("div",{class:"area"+(S.loaded?"":" ro"),style:"height:"+total+"px"});
+  for(var hr=START_H;hr<=END_H;hr++){
+    var y=(hr-START_H)*HPX;
+    if(hr>START_H && hr<END_H) hours.append(h("span",{class:"hl num",style:"top:"+y+"px",text:pad(hr)}));
+    if(hr<END_H){
+      if(hr>START_H) area.append(h("div",{class:"gl",style:"top:"+y+"px"}));
+      area.append(h("div",{class:"gl half",style:"top:"+(y+HPX/2)+"px"}));
+    }
+  }
+  if(S.sel===todayStr()){
+    var n=nowMin();
+    if(n>base){
+      var py=Math.min(total,(n-base)*HPX/60);
+      area.append(h("div",{class:"past",style:"height:"+py+"px"}));
+      if(n<END_H*60) area.append(h("div",{class:"now",style:"top:"+py+"px"}));
+    }
+  }
+  bookingsOn(S.sel).forEach(function(b){
+    var top=(Math.max(b.start,base)-base)*HPX/60;
+    var ht=Math.max(22,(Math.min(b.end,END_H*60)-Math.max(b.start,base))*HPX/60-3);
+    var short=ht<56, tag=tagOf(b);
+    var who;
+    if(b.mode==="blocked") who=b.note||L("blockedDefault");
+    else if(b.mode==="open") who=[b.name||L("noName")].concat(joinsOf(b.id).map(function(j){ return j.name||L("noName"); })).join(", ");
+    else who=b.name||L("noName");
+    area.append(h("button",{class:"bk "+b.mode+(short?" short":""),type:"button",style:"top:"+(top+1)+"px;height:"+ht+"px",
+        onclick:function(ev){ ev.stopPropagation(); openDetail(b.id); }},
+      h("div",{class:"r1"},h("span",{class:"who",text:short && b.mode!=="blocked" ? tag+", "+who : who})),
+      short?null:h("span",{class:"tag",text:tag})
+    ));
+  });
+  area.addEventListener("click",function(ev){
+    if(ev.target!==area || !S.loaded) return;
+    var r=area.getBoundingClientRect();
+    var m=base+Math.floor(((ev.clientY-r.top)/HPX*60)/30)*30;
+    m=Math.max(base,Math.min(END_H*60-30,m));
+    openForm(S.sel,m);
+  });
+  return h("div",{class:"tl"},hours,area);
+}
+
+/* ---------- 예약 창 ---------- */
+function timeOptions(from,to,sel){
+  var out=[]; for(var m=from;m<=to;m+=30) out.push(h("option",{value:String(m),selected:m===sel,text:fmt(m)})); return out;
+}
+function overlap(date,start,end){
+  return S.bookings.find(function(b){ return b.date===date && b.start<end && start<b.end; });
+}
+function openForm(date,start){
+  S.sheetMode="form";
+  var n=nowMin();
+  if(start==null){
+    start = (date===todayStr()) ? Math.max(START_H*60, Math.ceil((n+1)/30)*30) : 18*60;
+    if(start>END_H*60-30) start=END_H*60-60;
+  }
+  var end=Math.min(END_H*60,start+60);
+
+  var nameI=h("input",{type:"text",id:"f-name",maxlength:"20",value:getName(),autocomplete:"name",placeholder:L("namePh")});
+  var pwI=h("input",{type:"password",id:"f-pw",maxlength:"20",autocomplete:"new-password",placeholder:L("pwPh")});
+  var dateS=h("select",{id:"f-date"}, days().map(function(d,i){ var s=dstr(d); return h("option",{value:s,selected:s===date,text:(i===0?L("todayPrefix"):"")+dayLabel(s)}); }));
+  var startS=h("select",{id:"f-start"}, timeOptions(START_H*60,END_H*60-30,start));
+  var endS=h("select",{id:"f-end"}, timeOptions(start+30,END_H*60,end));
+  startS.addEventListener("change",function(){
+    var s=+startS.value, e=Math.max(+endS.value,s+30);
+    endS.replaceChildren.apply(endS, timeOptions(s+30,END_H*60,Math.min(END_H*60,e)));
+  });
+  var capS=h("select",{id:"f-cap"},[2,3,4,6].map(function(c){ return h("option",{value:String(c),selected:c===4,text:L("capOpt",c)}); }));
+  var exClose=h("input",{type:"radio",name:"extra",value:"0",checked:true});
+  var exOpen=h("input",{type:"radio",name:"extra",value:"1"});
+  var capWrap=h("div",null,h("label",{class:"f",for:"f-cap",text:L("cap")}),capS,
+    h("label",{class:"f",text:L("whenFull")}),
+    h("div",{class:"seg",role:"radiogroup","aria-label":L("whenFull")},
+      h("label",null,exClose,h("span",null,h("b",{text:L("fullClose")}),h("small",{text:L("fullCloseD")}))),
+      h("label",null,exOpen,h("span",null,h("b",{text:L("fullOpen")}),h("small",{text:L("fullOpenD")})))));
+  var noteI=h("input",{type:"text",id:"f-note",maxlength:"60"});
+  function radio(val,title,desc,checked){
+    var i=h("input",{type:"radio",name:"mode",value:val,checked:checked});
+    i.addEventListener("change",sync);
+    return h("label",null,i,h("span",null,h("b",{text:title}),h("small",{text:desc})));
+  }
+  var seg=h("div",{class:"seg",role:"radiogroup","aria-label":L("mode")},
+    radio("open",L("mOpen"),L("mOpenD"),true),
+    radio("closed",L("mClosed"),L("mClosedD"),false),
+    radio("lesson",L("mLesson"),L("mLessonD"),false),
+    S.isAdmin?radio("blocked",L("mBlocked"),L("mBlockedD"),false):null);
+  var nameWrap=h("div",null,h("label",{class:"f",for:"f-name",text:L("name")}),nameI,
+    h("label",{class:"f",for:"f-pw",text:L("pw")}),pwI);
+  var noteLbl=h("label",{class:"f",for:"f-note",text:L("note")});
+  function sync(){
+    var m=(seg.querySelector("input:checked")||{}).value;
+    capWrap.style.display = m==="open"?"":"none";
+    nameWrap.style.display = m==="blocked"?"none":"";
+    noteLbl.textContent = m==="blocked"?L("reason"):L("note");
+    noteI.placeholder = m==="blocked"?L("phBlocked"):(m==="lesson"?L("phLesson"):L("phOpen"));
+  }
+  var err=h("p",{class:"err",role:"alert"});
+  var saveB=h("button",{class:"btn",type:"button",text:L("book")});
+  saveB.addEventListener("click",async function(){
+    var f={ name:nameI.value.trim(), date:dateS.value, start:+startS.value, end:+endS.value,
+      mode:(seg.querySelector("input:checked")||{}).value||"open", capacity:+capS.value, extra:exOpen.checked, note:noteI.value.trim() };
+    err.textContent="";
+    if(f.mode!=="blocked" && !f.name){ err.textContent=L("needName"); return; }
+    if(f.mode!=="blocked" && pwI.value.length<4){ err.textContent=L("needPw"); return; }
+    if(f.end<=f.start){ err.textContent=L("endAfter"); return; }
+    if(f.date===todayStr() && f.end<=nowMin()){ err.textContent=L("past"); return; }
+    var c=overlap(f.date,f.start,f.end);
+    if(c){ err.textContent=L("clash",fmt(c.start),fmt(c.end)); return; }
+    saveB.textContent=L("saving");
+    var ok=await act("addBooking",[f,pwI.value,S.adminKey],err,saveB);
+    saveB.textContent=L("book");
+    if(ok){ if(f.name) setName(f.name); S.sel=f.date; closeSheet(); render(); }
+  });
+  sheet.replaceChildren(h("div",{class:"sheet"},
+    h("h2",{text:L("formTitle")}),
+    nameWrap,
+    h("label",{class:"f",for:"f-date",text:L("date")}),dateS,
+    h("div",{class:"row"},
+      h("div",null,h("label",{class:"f",for:"f-start",text:L("start")}),startS),
+      h("div",null,h("label",{class:"f",for:"f-end",text:L("end")}),endS)),
+    h("label",{class:"f",text:L("mode")}),seg,
+    capWrap,
+    noteLbl,noteI,
+    err,
+    h("div",{class:"actions"},
+      h("button",{class:"btn ghost",type:"button",text:L("close"),onclick:closeSheet}),
+      saveB)
+  ));
+  sync();
+  if(!sheet.open) sheet.showModal();
+  if(!nameI.value) nameI.focus();
+}
+
+/* ---------- 예약 상세 ---------- */
+var pend=null;
+function openDetail(id){ S.sheetMode="detail"; S.detailId=id; S.msg=""; pend=null; renderDetail(); if(!sheet.open) sheet.showModal(); }
+
+/* 비밀번호가 필요한 동작: 관리자는 바로 실행, 아니면 비밀번호 칸을 보여 줘요. */
+function askPw(labelKey, labelArg, run){
+  S.msg="";
+  if(S.isAdmin){ run(""); return; }
+  pend={key:labelKey, arg:labelArg, run:run};
+  renderDetail();
+  var i=sheet.querySelector("#pw-in"); if(i) i.focus();
+}
+
+function renderDetail(){
+  var b=S.bookings.find(function(x){ return x.id===S.detailId; });
+  if(!b){ closeSheet(); return; }
+  var js=joinsOf(b.id), cap=b.capacity||4, cnt=1+js.length;
+  var over = b.date<todayStr() || (b.date===todayStr() && b.end<=nowMin());
+  var title = b.mode==="blocked"?L("tBlocked"):(b.mode==="open"?L("tOpen"):(b.mode==="lesson"?L("tLesson"):L("tClosed")));
+  var err=h("p",{class:"err",role:"alert",text:tr(S.msg)});
+  var body=[h("h2",{text:title}), h("p",{class:"when num",text:dayLabel(b.date)+"  "+fmt(b.start)+"–"+fmt(b.end)})];
+
+  if(b.mode==="blocked"){
+    body.push(h("p",{class:"kv",text:b.note||L("noReason")}));
+  } else {
+    if(b.note) body.push(h("p",{class:"kv"},h("span",{text:L("memo")}),b.note));
+    if(b.mode==="open"){
+      body.push(h("label",{class:"f",text:L("players",cnt,cap)}));
+      var ul=h("ul",{class:"people"});
+      ul.append(h("li",null,h("span",{text:b.name||L("noName")}),h("small",{text:L("hostTag")})));
+      js.forEach(function(j){
+        var jn=j.name||L("noName");
+        ul.append(h("li",null,h("span",{text:jn}),
+          h("span",null,h("small",{text:L("joinedTag")}),
+            over?null:h("button",{class:"mini-btn",type:"button",text:L("cancelLink"),onclick:function(){
+              askPw("leaveLabel", jn, function(pw){
+                return act("leave",[j.id,pw,S.adminKey],err).then(function(ok){ if(ok){ pend=null; renderDetail(); } });
+              });
+            }}))));
+      });
+      body.push(ul);
+      if(b.extra) body.push(h("p",{class:"kv",text:L("extraNote")}));
+    } else {
+      body.push(h("p",{class:"kv"},h("span",{text:L("host")}),b.name||L("noName")));
+      body.push(h("p",{class:"kv",text:b.mode==="lesson"?L("lessonNote"):L("closedNote")}));
+    }
+  }
+
+  /* 비밀번호 입력 칸 */
+  if(pend){
+    var p=pend;
+    var pi=h("input",{type:"password",id:"pw-in",maxlength:"20",autocomplete:"current-password","aria-label":L("pwAria")});
+    var okB=h("button",{class:"btn",type:"button",text:L("ok")});
+    var go=function(){ if(!pi.value){ err.textContent=L("enterPw"); return; } okB.disabled=true; Promise.resolve(p.run(pi.value)).then(function(){ okB.disabled=false; }); };
+    okB.addEventListener("click",go);
+    pi.addEventListener("keydown",function(ev){ if(ev.key==="Enter") go(); });
+    body.push(h("div",{class:"pwbox"},
+      h("p",{text:L("pwPrompt",L(p.key,p.arg))}),
+      h("div",{class:"row"},pi,okB,
+        h("button",{class:"btn ghost",type:"button",text:L("stop"),onclick:function(){ pend=null; S.msg=""; renderDetail(); }}))));
+  }
+
+  var actions=h("div",{class:"actions"});
+
+  /* 참여 신청 */
+  if(b.mode==="open" && !over && !pend){
+    if(cnt<cap || b.extra){
+      var nm=h("input",{type:"text",maxlength:"20",value:getName(),placeholder:L("myName"),"aria-label":L("myName")});
+      var jp=h("input",{type:"password",maxlength:"20",autocomplete:"new-password",placeholder:L("joinPh"),"aria-label":L("joinPw")});
+      body.push(h("div",{class:"row"},
+        h("div",null,h("label",{class:"f",text:L("myName")}),nm),
+        h("div",null,h("label",{class:"f",text:L("joinPw")}),jp)));
+      actions.append(h("button",{class:"btn",type:"button",text:L("joinBtn"),onclick:async function(ev){
+        var n=nm.value.trim();
+        if(!n){ err.textContent=L("needName"); return; }
+        if(jp.value.length<4){ err.textContent=L("needPw"); return; }
+        if(await act("join",[b.id,n,jp.value,S.adminKey],err,ev.currentTarget)) setName(n);
+      }}));
+    } else {
+      body.push(h("p",{class:"kv",text:L("fullMsg")}));
+    }
+  }
+
+  /* 예약자 동작 */
+  if(!pend){
+    if((b.mode==="open"||b.mode==="closed") && !over){
+      var to = b.mode==="open"?"closed":"open";
+      var key = to==="open"?"toOpen":"toClosed";
+      actions.append(h("button",{class:"btn ghost",type:"button",text:L(key),onclick:function(ev){
+        var btn=ev.currentTarget;
+        askPw(key, null, function(pw){ return act("setMode",[b.id,to,pw,S.adminKey],err,btn).then(function(ok){ if(ok){ pend=null; renderDetail(); } }); });
+      }}));
+    }
+    if(b.mode!=="blocked" || S.isAdmin){
+      var dk = b.mode==="blocked"?"unblock":"cancelB";
+      actions.append(h("button",{class:"btn danger",type:"button",text:L(dk),onclick:function(ev){
+        var btn=ev.currentTarget;
+        askPw(dk, null, function(pw){ return act("cancelBooking",[b.id,pw,S.adminKey],err,btn).then(function(ok){ if(ok){ pend=null; closeSheet(); } }); });
+      }}));
+    }
+  }
+  actions.append(h("button",{class:"btn ghost",type:"button",text:L("close"),onclick:closeSheet}));
+  body.push(err, actions);
+  sheet.replaceChildren(h("div",{class:"sheet"},body));
+}
+
+function closeSheet(){ S.sheetMode=null; S.detailId=null; pend=null; S.msg=""; if(sheet.open) sheet.close(); }
+sheet.addEventListener("close",function(){ S.sheetMode=null; S.detailId=null; pend=null; });
+sheet.addEventListener("click",function(ev){ if(ev.target===sheet) closeSheet(); });
+
+/* ---------- 시작 ---------- */
+document.documentElement.lang=S.lang;
+try{ S.adminKey=localStorage.getItem("tennis.admin")||""; }catch(e){}
+render();
+if(!apiReady()){
+  S.loaded=true;
+  S.err=TXT.preview[0];
+  render();
+  return;
+}
+(function(){
+  var q=new URLSearchParams(location.search), k=q.get("admin");
+  if(k){
+    S.adminKey=k; try{ localStorage.setItem("tennis.admin",k); }catch(e){}
+    q.delete("admin");
+    var rest=q.toString();
+    history.replaceState(null,"",location.pathname+(rest?"?"+rest:"")+location.hash);
+  }
+})();
+load();
+setInterval(function(){
+  if(document.visibilityState!=="visible") return;
+  if(S.sheetMode==="form") return;
+  load();
+}, 30000);
+setInterval(function(){ if(S.sheetMode!=="form") render(); }, 60000);
+document.addEventListener("visibilitychange",function(){ if(document.visibilityState==="visible") load(); });
+})();
+</script>
 </body>
 </html>
